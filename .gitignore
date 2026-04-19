@@ -1,0 +1,29 @@
+﻿# Local / IDE
+.idea/
+.vscode/
+*.log
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+build/
+
+# Android local secrets
+mobile/android/local.properties
+mobile/android/key.properties
+mobile/android/app/upload-keystore.jks
+mobile/android/app/debug.keystore
+mobile/android/app/google-services.json
+
+# Secrets
+.env
+.env.*
+**/*.env
+**/serviceAccountKey.json
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
