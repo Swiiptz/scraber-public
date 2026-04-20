@@ -3,6 +3,7 @@ import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/design/design.dart';
@@ -84,12 +85,13 @@ class _DetailView extends StatelessWidget {
         _TopBar(
           isFavorite: isFavorite,
           onToggleFavorite: onToggleFavorite,
-          onShare: item.primarySource == null
+          onOpenSource: item.primarySource == null
               ? null
               : () => launchUrl(
                     Uri.parse(item.primarySource!.url),
                     mode: LaunchMode.externalApplication,
                   ),
+          onShare: () => _shareItem(item),
         ),
         Expanded(
           child: ListView(
@@ -157,17 +159,35 @@ class _DetailView extends StatelessWidget {
         item.product != null ||
         item.exploited;
   }
+
+  Future<void> _shareItem(CyberItem item) async {
+    final urls = item.sources
+        .map((source) => source.url)
+        .where((url) => url.trim().isNotEmpty)
+        .toSet()
+        .toList();
+    final text = [
+      item.title,
+      if (urls.isNotEmpty) '',
+      ...urls,
+    ].join('\n');
+    await SharePlus.instance.share(
+      ShareParams(text: text, subject: item.title),
+    );
+  }
 }
 
 class _TopBar extends StatelessWidget {
   const _TopBar({
     required this.isFavorite,
     required this.onToggleFavorite,
+    required this.onOpenSource,
     required this.onShare,
   });
 
   final bool isFavorite;
   final VoidCallback onToggleFavorite;
+  final VoidCallback? onOpenSource;
   final VoidCallback? onShare;
 
   @override
@@ -178,7 +198,13 @@ class _TopBar extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            onPressed: () => context.pop(),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/');
+              }
+            },
             icon: Icon(Icons.arrow_back, color: palette.ink),
             tooltip: 'Retour',
           ),
@@ -186,6 +212,12 @@ class _TopBar extends StatelessWidget {
           if (onShare != null)
             IconButton(
               onPressed: onShare,
+              icon: Icon(Icons.share_outlined, color: palette.ink, size: 20),
+              tooltip: 'Partager',
+            ),
+          if (onOpenSource != null)
+            IconButton(
+              onPressed: onOpenSource,
               icon: Icon(Icons.open_in_new, color: palette.ink, size: 20),
               tooltip: 'Ouvrir la source',
             ),
@@ -215,7 +247,8 @@ class _EditionBar extends StatelessWidget {
         ? '№${item.editionNumber!.toString().padLeft(3, '0')}'
         : '№—';
     final typeLabel = item.type.toUpperCase();
-    final dateLabel = DateFormat("dd·MM·yyyy · HH:mm", 'fr_FR').format(item.date);
+    final dateLabel =
+        DateFormat("dd·MM·yyyy · HH:mm", 'fr_FR').format(item.date);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -266,10 +299,12 @@ class _MetaGrid extends StatelessWidget {
       cells.add(_MetaCell(label: 'Produit', value: item.product!));
     }
     if (item.exploited) {
-      cells.add(const _MetaCell(label: 'État', value: 'Exploitée', accent: true));
+      cells.add(
+          const _MetaCell(label: 'État', value: 'Exploitée', accent: true));
     }
     if (item.score > 0) {
-      cells.add(_MetaCell(label: 'Score', value: item.score.toString(), mono: true));
+      cells.add(
+          _MetaCell(label: 'Score', value: item.score.toString(), mono: true));
     }
 
     return Container(
@@ -286,8 +321,7 @@ class _MetaGrid extends StatelessWidget {
             spacing: 16,
             runSpacing: 14,
             children: [
-              for (final cell in cells)
-                SizedBox(width: half, child: cell),
+              for (final cell in cells) SizedBox(width: half, child: cell),
             ],
           );
         },
@@ -316,10 +350,12 @@ class _MetaCell extends StatelessWidget {
     final palette = AppPalette.of(context);
     final valueColor = accent ? palette.accent : palette.ink;
     final valueStyle = big
-        ? AppText.monoEdition(valueColor).copyWith(fontSize: 20, fontWeight: FontWeight.w600)
+        ? AppText.monoEdition(valueColor)
+            .copyWith(fontSize: 20, fontWeight: FontWeight.w600)
         : mono
             ? AppText.monoData(valueColor)
-            : AppText.bodySmall(valueColor).copyWith(fontSize: 13, fontWeight: FontWeight.w500);
+            : AppText.bodySmall(valueColor)
+                .copyWith(fontSize: 13, fontWeight: FontWeight.w500);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -352,8 +388,7 @@ class _SourcesCard extends StatelessWidget {
         children: [
           for (var i = 0; i < sources.length; i++) ...[
             _SourceRow(source: sources[i]),
-            if (i < sources.length - 1)
-              Filet(indent: 14, endIndent: 14),
+            if (i < sources.length - 1) Filet(indent: 14, endIndent: 14),
           ],
         ],
       ),
@@ -387,7 +422,8 @@ class _SourceRow extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     source.name,
-                    style: AppText.bodySmall(palette.ink).copyWith(fontSize: 12.5),
+                    style:
+                        AppText.bodySmall(palette.ink).copyWith(fontSize: 12.5),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

@@ -15,6 +15,8 @@ Pilot release. Android first.
 - Severity levels: critical, high, medium, low
 - Calendar view
 - Local favorites
+- Feed sorting by date or severity
+- Native sharing for item titles and source links
 - Push notifications by severity threshold
 - Editorial UI inspired by cold paper, fine rules and issue numbering
 

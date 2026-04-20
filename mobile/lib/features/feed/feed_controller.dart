@@ -21,6 +21,18 @@ final filterOptionsProvider = Provider<Map<String, List<String>>>((ref) {
   return filtersFromItems(items);
 });
 
+enum FeedSortMode { newest, oldest, criticality }
+
+extension FeedSortModeLabel on FeedSortMode {
+  String get label {
+    return switch (this) {
+      FeedSortMode.newest => 'Plus récent',
+      FeedSortMode.oldest => 'Moins récent',
+      FeedSortMode.criticality => 'Criticité',
+    };
+  }
+}
+
 @immutable
 class FeedFilters {
   const FeedFilters({
@@ -30,6 +42,7 @@ class FeedFilters {
     this.tag,
     this.source,
     this.day,
+    this.sortMode = FeedSortMode.newest,
   });
 
   final String query;
@@ -38,6 +51,7 @@ class FeedFilters {
   final String? tag;
   final String? source;
   final DateTime? day;
+  final FeedSortMode sortMode;
 
   bool get hasFilters =>
       type != null ||
@@ -54,6 +68,7 @@ class FeedFilters {
     String? tag,
     String? source,
     DateTime? day,
+    FeedSortMode? sortMode,
     bool clearType = false,
     bool clearLevel = false,
     bool clearTag = false,
@@ -67,12 +82,13 @@ class FeedFilters {
       tag: clearTag ? null : (tag ?? this.tag),
       source: clearSource ? null : (source ?? this.source),
       day: clearDay ? null : (day ?? this.day),
+      sortMode: sortMode ?? this.sortMode,
     );
   }
 
   List<CyberItem> apply(List<CyberItem> items) {
     final needle = query.trim().toLowerCase();
-    return items.where((item) {
+    final filtered = items.where((item) {
       if (type != null && item.type != type) return false;
       if (level != null && item.level != level) return false;
       if (tag != null && !item.tags.contains(tag)) return false;
@@ -85,15 +101,47 @@ class FeedFilters {
         final inSummary = item.summary.toLowerCase().contains(needle);
         final inTags = item.tags.any((t) => t.toLowerCase().contains(needle));
         final inCves = item.cves.any((c) => c.toLowerCase().contains(needle));
-        final inProduct =
-            item.product?.toLowerCase().contains(needle) ?? false;
+        final inProduct = item.product?.toLowerCase().contains(needle) ?? false;
         final inVendor = item.vendor?.toLowerCase().contains(needle) ?? false;
-        if (!(inTitle || inSummary || inTags || inCves || inProduct || inVendor)) {
+        if (!(inTitle ||
+            inSummary ||
+            inTags ||
+            inCves ||
+            inProduct ||
+            inVendor)) {
           return false;
         }
       }
       return true;
     }).toList();
+    filtered.sort(_compareItems);
+    return filtered;
+  }
+
+  int _compareItems(CyberItem a, CyberItem b) {
+    return switch (sortMode) {
+      FeedSortMode.newest => b.date.compareTo(a.date),
+      FeedSortMode.oldest => a.date.compareTo(b.date),
+      FeedSortMode.criticality => _compareCriticality(a, b),
+    };
+  }
+
+  int _compareCriticality(CyberItem a, CyberItem b) {
+    final levelCompare = _levelRank(b.level).compareTo(_levelRank(a.level));
+    if (levelCompare != 0) return levelCompare;
+    final scoreCompare = b.score.compareTo(a.score);
+    if (scoreCompare != 0) return scoreCompare;
+    return b.date.compareTo(a.date);
+  }
+
+  int _levelRank(String level) {
+    return switch (level.toUpperCase()) {
+      'CRITIQUE' => 4,
+      'ELEVEE' || 'ÉLEVÉE' => 3,
+      'MOYENNE' => 2,
+      'FAIBLE' => 1,
+      _ => 0,
+    };
   }
 }
 
@@ -115,9 +163,8 @@ class FeedFiltersController extends StateNotifier<FeedFilters> {
   }
 
   void setTag(String? tag) {
-    state = tag == null
-        ? state.copyWith(clearTag: true)
-        : state.copyWith(tag: tag);
+    state =
+        tag == null ? state.copyWith(clearTag: true) : state.copyWith(tag: tag);
   }
 
   void setSource(String? source) {
@@ -130,6 +177,10 @@ class FeedFiltersController extends StateNotifier<FeedFilters> {
     state = day == null
         ? state.copyWith(clearDay: true)
         : state.copyWith(day: DateTime(day.year, day.month, day.day));
+  }
+
+  void setSortMode(FeedSortMode sortMode) {
+    state = state.copyWith(sortMode: sortMode);
   }
 
   void clearAll() => state = const FeedFilters();

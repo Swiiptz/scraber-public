@@ -63,6 +63,6 @@ class NotificationService {
   static void _openItemFromMessage(GoRouter router, RemoteMessage? message) {
     final id = message?.data['item_id'];
     if (id is! String || id.isEmpty) return;
-    router.go('/items/${Uri.encodeComponent(id)}');
+    router.push('/items/${Uri.encodeComponent(id)}');
   }
 }

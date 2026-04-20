@@ -236,6 +236,11 @@ class _FilterBar extends ConsumerWidget {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: AppDims.sp5),
         children: [
+          _SortChip(
+            selected: filters.sortMode,
+            onSelected: controller.setSortMode,
+          ),
+          const SizedBox(width: 8),
           _buildChip(
             context: context,
             kind: _FilterKind.level,
@@ -291,6 +296,192 @@ class _FilterBar extends ConsumerWidget {
         onPicked: onSelected,
       ),
       onClear: selected != null ? () => onSelected(null) : null,
+    );
+  }
+}
+
+class _SortChip extends StatelessWidget {
+  const _SortChip({required this.selected, required this.onSelected});
+
+  final FeedSortMode selected;
+  final ValueChanged<FeedSortMode> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return ScraberFilterChip(
+      label: 'Tri · ${selected.label}',
+      active: selected != FeedSortMode.newest,
+      onTap: () => _openSortSheet(
+        context: context,
+        selected: selected,
+        onPicked: onSelected,
+      ),
+    );
+  }
+}
+
+Future<void> _openSortSheet({
+  required BuildContext context,
+  required FeedSortMode selected,
+  required ValueChanged<FeedSortMode> onPicked,
+}) async {
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    barrierColor: Colors.black.withValues(alpha: 0.35),
+    builder: (sheetContext) => _SortSheet(
+      selected: selected,
+      onPicked: (value) {
+        onPicked(value);
+        Navigator.of(sheetContext).pop();
+      },
+    ),
+  );
+}
+
+class _SortSheet extends StatelessWidget {
+  const _SortSheet({required this.selected, required this.onPicked});
+
+  final FeedSortMode selected;
+  final ValueChanged<FeedSortMode> onPicked;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppDims.radiusLg),
+        ),
+        border: Border(top: BorderSide(color: palette.border)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 10, bottom: 6),
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: palette.border,
+                  borderRadius: BorderRadius.circular(AppDims.pill),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppDims.sp5,
+                AppDims.sp3,
+                AppDims.sp5,
+                AppDims.sp2,
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.sort_rounded,
+                      size: 18, color: palette.inkSecondary),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Trier l’affichage',
+                    style: AppText.bodySmall(palette.ink).copyWith(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            for (final mode in FeedSortMode.values)
+              _SortOptionRow(
+                mode: mode,
+                selected: mode == selected,
+                onTap: () => onPicked(mode),
+              ),
+            const SizedBox(height: AppDims.sp4),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SortOptionRow extends StatelessWidget {
+  const _SortOptionRow({
+    required this.mode,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final FeedSortMode mode;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDims.sp3,
+        vertical: 2,
+      ),
+      child: Material(
+        color: selected ? palette.accentSoft : Colors.transparent,
+        borderRadius: BorderRadius.circular(AppDims.radiusMd),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppDims.radiusMd),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDims.sp3,
+              vertical: 12,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppDims.radiusMd),
+              border: Border.all(
+                color: selected ? palette.accent : palette.borderSoft,
+                width: selected ? 1.2 : 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    mode.label,
+                    style: AppText.body(palette.ink).copyWith(
+                      fontSize: 13.5,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                    ),
+                  ),
+                ),
+                if (selected)
+                  Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: palette.accent,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.check,
+                      size: 12,
+                      color: palette.background,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -441,7 +632,8 @@ class _FilterSheetHeader extends StatelessWidget {
           if (hasSelection)
             TextButton.icon(
               onPressed: onReset,
-              icon: Icon(Icons.close_rounded, size: 16, color: palette.critique),
+              icon:
+                  Icon(Icons.close_rounded, size: 16, color: palette.critique),
               label: Text(
                 'Effacer',
                 style: AppText.bodySmall(palette.critique).copyWith(
@@ -537,8 +729,7 @@ class _FilterOptionRow extends StatelessWidget {
                     color: palette.accent,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.check,
-                      size: 12, color: palette.background),
+                  child: Icon(Icons.check, size: 12, color: palette.background),
                 ),
             ],
           ),
@@ -676,8 +867,7 @@ class _EmptyState extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
           child: Column(
             children: [
-              Icon(Icons.inbox_outlined,
-                  size: 48, color: palette.inkTertiary),
+              Icon(Icons.inbox_outlined, size: 48, color: palette.inkTertiary),
               const SizedBox(height: 16),
               Text(
                 'Aucun contenu pour cette sélection.',
