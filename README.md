@@ -32,4 +32,5 @@ The private working repository contains the scraper automation, Firebase deploym
 
 ## Screenshots
 
-Coming soon.
+<img width="1536" height="1024" alt="scraber_img" src="https://github.com/user-attachments/assets/b89805d4-b1dc-450c-8000-6f57de660d30" />
+
