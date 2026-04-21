@@ -45,4 +45,10 @@ Les favoris et réglages locaux peuvent être supprimés en désinstallant l'app
 
 ## Contact
 
-Pour toute question concernant cette politique de confidentialité, utilisez les informations de contact affichées sur la fiche Google Play de l'application.
+Pour toute question concernant cette politique de confidentialité ou l'application Scraber, vous pouvez écrire à :
+
+**swiiptz.dev@gmail.com**
+
+Page publique de contact :
+
+https://github.com/Swiiptz/scraber-public/blob/main/CONTACT.md

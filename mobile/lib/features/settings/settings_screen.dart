@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/design/design.dart';
 import '../../services/notification_service.dart';
 import '../../services/preferences_service.dart';
+
+const _contactEmail = 'swiiptz.dev@gmail.com';
+const _privacyUrl =
+    'https://github.com/Swiiptz/scraber-public/blob/main/PRIVACY.md';
+const _contactUrl =
+    'https://github.com/Swiiptz/scraber-public/blob/main/CONTACT.md';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -22,7 +29,7 @@ class SettingsScreen extends ConsumerWidget {
           children: [
             const EditionHeader(
               edition: 'SCRABER · CONFIGURATION',
-              trailing: 'v1.0',
+              trailing: 'v1.1.2',
               title: 'Paramètres',
             ),
             const SizedBox(height: 4),
@@ -58,16 +65,55 @@ class SettingsScreen extends ConsumerWidget {
               label: 'À propos',
               child: Column(
                 children: [
-                  _InfoRow(label: 'Version', value: '1.0.0'),
+                  _InfoRow(label: 'Version', value: '1.1.2'),
                   _Divider(),
-                  _InfoRow(
-                    label: 'Source de données',
-                    value: 'Firebase',
-                  ),
+                  _InfoRow(label: 'Source de données', value: 'Firebase'),
                   _Divider(),
                   _InfoRow(
                     label: 'Rythme de collecte',
                     value: 'Toutes les 2 h',
+                  ),
+                ],
+              ),
+            ),
+            _SettingsGroup(
+              label: 'Contact',
+              child: Column(
+                children: [
+                  _LinkRow(
+                    label: 'E-mail',
+                    value: _contactEmail,
+                    onTap: () => launchUrl(
+                      Uri(
+                        scheme: 'mailto',
+                        path: _contactEmail,
+                        queryParameters: {'subject': 'Contact Scraber'},
+                      ),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                  ),
+                  _Divider(),
+                  _LinkRow(
+                    label: 'Confidentialité',
+                    value: 'Politique',
+                    onTap: () => launchUrl(
+                      Uri.parse(_privacyUrl),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                  ),
+                  _Divider(),
+                  _LinkRow(
+                    label: 'Page contact',
+                    value: 'GitHub',
+                    onTap: () => launchUrl(
+                      Uri.parse(_contactUrl),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                  ),
+                  _Divider(),
+                  const _NoteRow(
+                    text:
+                        'Scraber agrège des sources tierces. Chaque item renvoie vers sa source originale.',
                   ),
                 ],
               ),
@@ -138,14 +184,16 @@ class _ThresholdRow extends StatelessWidget {
         children: [
           Text(
             'Seuil de notification',
-            style: AppText.body(palette.ink)
-                .copyWith(fontSize: 14, fontWeight: FontWeight.w500),
+            style: AppText.body(
+              palette.ink,
+            ).copyWith(fontSize: 14, fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 4),
           Text(
             'Recevoir une alerte à partir de ce niveau de sévérité.',
-            style: AppText.bodySmall(palette.inkSecondary)
-                .copyWith(fontSize: 11.5, height: 1.4),
+            style: AppText.bodySmall(
+              palette.inkSecondary,
+            ).copyWith(fontSize: 11.5, height: 1.4),
           ),
           const SizedBox(height: 12),
           _ThresholdPicker(value: value, onChanged: onChanged),
@@ -231,9 +279,13 @@ class _ThresholdTile extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               label,
-              style: AppText.pillLevel(
-                active ? colors.fg : palette.inkSecondary,
-              ).copyWith(fontSize: 10.5, fontWeight: active ? FontWeight.w700 : FontWeight.w600),
+              style:
+                  AppText.pillLevel(
+                    active ? colors.fg : palette.inkSecondary,
+                  ).copyWith(
+                    fontSize: 10.5,
+                    fontWeight: active ? FontWeight.w700 : FontWeight.w600,
+                  ),
             ),
           ],
         ),
@@ -258,8 +310,9 @@ class _ThemeRow extends StatelessWidget {
         children: [
           Text(
             'Thème',
-            style: AppText.body(palette.ink)
-                .copyWith(fontSize: 14, fontWeight: FontWeight.w500),
+            style: AppText.body(
+              palette.ink,
+            ).copyWith(fontSize: 14, fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 10),
           _Segmented<ThemeMode>(
@@ -344,12 +397,13 @@ class _SegmentedItem extends StatelessWidget {
         child: Center(
           child: Text(
             label,
-            style: AppText.bodySmall(
-              active ? palette.ink : palette.inkSecondary,
-            ).copyWith(
-              fontSize: 12,
-              fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-            ),
+            style:
+                AppText.bodySmall(
+                  active ? palette.ink : palette.inkSecondary,
+                ).copyWith(
+                  fontSize: 12,
+                  fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                ),
           ),
         ),
       ),
@@ -385,14 +439,16 @@ class _ToggleRow extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: AppText.body(palette.ink)
-                        .copyWith(fontSize: 14, fontWeight: FontWeight.w500),
+                    style: AppText.body(
+                      palette.ink,
+                    ).copyWith(fontSize: 14, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     hint,
-                    style: AppText.bodySmall(palette.inkSecondary)
-                        .copyWith(fontSize: 11.5),
+                    style: AppText.bodySmall(
+                      palette.inkSecondary,
+                    ).copyWith(fontSize: 11.5),
                   ),
                 ],
               ),
@@ -426,17 +482,87 @@ class _InfoRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: AppText.body(palette.ink)
-                  .copyWith(fontSize: 14, fontWeight: FontWeight.w500),
+              style: AppText.body(
+                palette.ink,
+              ).copyWith(fontSize: 14, fontWeight: FontWeight.w500),
             ),
           ),
           const SizedBox(width: 12),
           Text(
             value.toUpperCase(),
-            style: AppText.monoLabelSm(palette.inkSecondary)
-                .copyWith(fontSize: 11),
+            style: AppText.monoLabelSm(
+              palette.inkSecondary,
+            ).copyWith(fontSize: 11),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _NoteRow extends StatelessWidget {
+  const _NoteRow({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Text(
+        text,
+        style: AppText.bodySmall(
+          palette.inkSecondary,
+        ).copyWith(fontSize: 11.5, height: 1.4),
+      ),
+    );
+  }
+}
+
+class _LinkRow extends StatelessWidget {
+  const _LinkRow({
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
+
+  final String label;
+  final String value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: AppText.body(
+                  palette.ink,
+                ).copyWith(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Flexible(
+              child: Text(
+                value,
+                textAlign: TextAlign.right,
+                overflow: TextOverflow.ellipsis,
+                style: AppText.monoLabelSm(palette.accent).copyWith(
+                  fontSize: 11,
+                  decoration: TextDecoration.underline,
+                  decorationColor: palette.accent,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,7 +1,7 @@
 name: scraber
 description: Application Android de veille cyber et vulnerabilites.
 publish_to: "none"
-version: 0.1.0+1
+version: 1.1.2+3
 
 environment:
   sdk: ">=3.5.0 <4.0.0"

@@ -4,9 +4,9 @@ import '../tokens.dart';
 import '../typography.dart';
 import 'filet.dart';
 
-/// Colophon éditorial `— Scraber · v1.0 —` encadré de filets.
+/// Colophon éditorial `— Scraber · v1.1.2 —` encadré de filets.
 class Colophon extends StatelessWidget {
-  const Colophon({super.key, this.version = 'v1.0', this.label = 'Scraber'});
+  const Colophon({super.key, this.version = 'v1.1.2', this.label = 'Scraber'});
 
   final String version;
   final String label;

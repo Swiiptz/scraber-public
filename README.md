@@ -24,6 +24,18 @@ Pilot release. Android first.
 
 The latest APK will be available from the GitHub Releases page.
 
+## Contact
+
+For questions about Scraber, contact:
+
+**swiiptz.dev@gmail.com**
+
+Public contact page: [CONTACT.md](CONTACT.md)
+
+Privacy policy: [PRIVACY.md](PRIVACY.md)
+
+Scraber aggregates third-party cybersecurity sources. Each item links back to its original source when available.
+
 ## Source Code
 
 This public repository contains a selected source snapshot of the Flutter app.
